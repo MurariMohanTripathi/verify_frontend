@@ -1,15 +1,57 @@
+// VERIFY/src/services/backendAPI.js
 import axios from "axios";
 
-const API = axios.create({
-  baseURL: "http://localhost:5000/api/news", // your backend base URL
-});
+const API_URL =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:5000/api/news"
+    : "https://verify-backend-n5pg.onrender.com/api/news";
 
-// Submit News
-export const submitNews = (data) => API.post("/submit", data);
+export const getNews = async () => {
+  try {
+    const response = await axios.get(API_URL);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching news:", error);
+    throw error;
+  }
+};
 
-// Get All News
-export const getNews = () => API.get("/");
+export const submitNews = async (newsData) => {
+  try {
+    const response = await axios.post(API_URL, newsData);
+    return response.data;
+  } catch (error) {
+    console.error("Error submitting news:", error);
+    throw error;
+  }
+};
 
-// Vote on news
-export const voteNews = (id, type) =>
-  API.post(`/${id}/vote`, { type });
+export const voteNews = async (id, voteType) => {
+  try {
+    const response = await axios.post(`${API_URL}/${id}/vote`, { type: voteType });
+    return response.data;
+  } catch (error) {
+    console.error("Error voting:", error);
+    throw error;
+  }
+};
+
+//  THIS IS THE NEW FUNCTION THAT MAKES THE BUTTON WORK
+export const aiFactCheck = async (text) => {
+  try {
+    const response = await axios.post(`${API_URL}/fact-check`, { text });
+    return response.data;
+  } catch (error) {
+    console.error("AI Fact Check Error:", error);
+    throw error.response?.data?.error || "Failed to analyze the news.";
+  }
+};
+export const chatWithNewsAI = async (originalClaim, userMessage) => {
+  try {
+    const response = await axios.post(`${API_URL}/chat`, { originalClaim, userMessage });
+    return response.data;
+  } catch (error) {
+    console.error("AI Chat Error:", error);
+    throw error.response?.data?.error || "Failed to send message.";
+  }
+};
