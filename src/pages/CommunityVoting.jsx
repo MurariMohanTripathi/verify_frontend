@@ -20,7 +20,7 @@ const CommunityVoting = () => {
   const loadClaims = async () => {
     try {
       const res = await getNews();
-      setClaims(res.data);
+      setClaims(res);
       setLoading(false);
     } catch (err) {
       console.error("Error fetching news:", err);
