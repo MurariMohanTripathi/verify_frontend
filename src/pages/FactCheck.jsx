@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState ,useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Search, Loader2, MessageSquare, Send } from "lucide-react";
 import { aiFactCheck, chatWithNewsAI } from "../services/backendAPI";
 
 const FactCheck = () => {
+  const location = useLocation();
   const [query, setQuery] = useState("");
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -11,6 +13,15 @@ const FactCheck = () => {
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState("");
   const [isChatting, setIsChatting] = useState(false);
+  useEffect(() => {
+  if (location.state?.query) {
+    const incomingQuery = location.state.query;
+    setQuery(incomingQuery);
+
+    // Auto trigger API
+    handleAutoSubmit(incomingQuery);
+  }
+}, [location.state]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,6 +49,35 @@ const FactCheck = () => {
       setLoading(false);
     }
   };
+  const handleAutoSubmit = async (inputQuery) => {
+  if (!inputQuery.trim()) return;
+
+  setLoading(true);
+  setResult(null);
+  setChatMessages([]);
+
+  try {
+    const response = await aiFactCheck(inputQuery);
+    if (response.success) {
+      const aiData = response.data;
+      setResult({
+        originalClaim: inputQuery,
+        verdict: aiData.isLikelyFake
+          ? "False"
+          : aiData.credibilityScore > 60
+          ? "True"
+          : "Review",
+        confidence: `${aiData.credibilityScore}%`,
+        explanation: aiData.summary,
+        sources: [aiData.advice],
+      });
+    }
+  } catch (error) {
+    alert("Failed to analyze the news.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleChatSubmit = async (e) => {
     e.preventDefault();
