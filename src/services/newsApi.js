@@ -1,12 +1,17 @@
-// VERIFY/src/services/newsApi.js
+const API_BASE_URL =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:5000/api/news"
+    : "https://verify-backend-n5pg.onrender.com/api/news";
+
 export async function fetchHeadlines() {
   try {
-    const response = await fetch(
-      `https://newsapi.org/v2/top-headlines?country=us&apiKey=caf7167a558542dab67164b6e72af08c`
-    );
-    const data = await response.json();
-    // console.log("NewsAPI Response:", data); // 👀 Debug
-    return data.articles || []; // ✅ Return array
+    const response = await fetch(`${API_BASE_URL}/headlines`);
+
+    if (!response.ok) {
+      throw new Error(`Headlines request failed with ${response.status}`);
+    }
+
+    return await response.json();
   } catch (error) {
     console.error("Error fetching headlines:", error);
     return [];
